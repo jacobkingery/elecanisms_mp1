@@ -41,11 +41,7 @@ def toWord(byteArray):
 myEncoderTest = encodertest()
 mask = 0x3FFF  # Sets first two bits (parity and error flag) to 0
 while True:
-    magBytes = myEncoderTest.enc_readReg(myEncoderTest.ENC_MAGNITUDE)
     angBytes = myEncoderTest.enc_readReg(myEncoderTest.ENC_ANGLE_AFTER_ZERO_POS_ADDER)
-
-    magReading = toWord(magBytes)
-    angReading = toWord(angBytes)
-    print format(magReading, '016b'), float(magReading & mask) / mask * 360
-    print format(angReading, '016b'), float(angReading & mask) / mask * 360
-    print
+    if angBytes:
+        angReading = toWord(angBytes)
+        print angReading & mask
