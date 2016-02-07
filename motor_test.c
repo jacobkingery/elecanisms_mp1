@@ -4,28 +4,33 @@
 #include "pin.h"
 #include "timer.h"
 #include "oc.h"
+#include "md.h"
 
 int16_t main(void) {
     init_clock();
-    init_pin();
     init_timer();
+    init_pin();
     init_oc();
+    init_md();
 
-    pin_digitalOut(&D[8]);  // IN1
-    pin_digitalOut(&D[7]);  // IN2
-    pin_digitalOut(&D[5]);  // IN3
-    pin_digitalOut(&D[6]);  // IN4
-
-    timer_setPeriod(&timer2, 2.0);
+    timer_setPeriod(&timer2, 1.0);
     timer_start(&timer2);
 
-    pin_clear(&D[7]);
-    oc_pwm(&oc1, &D[8], NULL, 10.0, 32768);
+    uint16_t s = 0xFFFF;
+    uint8_t d = 0;
 
+    md_velocity(&mdp, 0x6000 & s, d);
+
+    uint8_t flag = 1;
     while (1) {
         if (timer_flag(&timer2)) {
             timer_lower(&timer2);
+            s = ~s;
+            if (flag) {
+                d = !d;
+            }
+            md_velocity(&mdp, 0x6000 & s, d);
+            flag = !flag;
         }
     }
 }
-
