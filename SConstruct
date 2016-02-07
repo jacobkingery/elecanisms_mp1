@@ -1,3 +1,5 @@
+import bootloadercmd as b
+
 env = Environment(PIC = '24FJ128GB206',
                   CC = 'xc16-gcc',
                   PROGSUFFIX = '.elf',
@@ -14,9 +16,32 @@ list = Builder(action = 'xc16-objdump -S -D $SOURCE > $TARGET',
                src_suffix = 'elf')
 env.Append(BUILDERS = {'List' : list})
 
-env.Program('motor_test', ['motor_test.c',
-                      '../lib/timer.c',
-                      '../lib/pin.c',
-                      '../lib/oc.c'])
-env.Hex('motor_test')
-env.List('motor_test')
+env.Program('mp1', ['mp1.c',
+                    '../lib/descriptors.c',
+                    '../lib/common.c',
+                    '../lib/timer.c',
+                    '../lib/pin.c',
+                    '../lib/oc.c',
+                    '../lib/md.c',
+                    '../lib/ui.c',
+                    '../lib/spi.c',
+                    '../lib/usb.c'])
+
+def load_function(target, source, env):
+    bl = b.bootloadercmd()
+    bl.import_hex(source[0].rstr())
+    bl.write_device()
+    bl.bootloader.start_user()
+    bl.bootloader.close()
+    return None
+
+load = Builder(action=load_function,
+               suffix = 'none',
+               src_suffix = 'hex')
+
+env.Append(BUILDERS = {'Load' : load})
+
+env.Hex('mp1')
+env.List('mp1')
+
+env.Load('mp1')
